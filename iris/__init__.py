@@ -20,16 +20,21 @@ def _secret_key(instance):
 
 
 def create_app(test_config=None):
-    instance = os.path.join(ROOT, "instance")
+    # IRIS_INSTANCE lets a deployment keep the database, the uploads and the secret key on a
+    # mounted disk instead of inside the (throw-away) application folder. Locally it is unset,
+    # so everything stays in ./instance as before.
+    instance = os.environ.get("IRIS_INSTANCE") or os.path.join(ROOT, "instance")
     app = Flask(__name__, instance_path=instance)
     os.makedirs(instance, exist_ok=True)
     app.config.update(DATABASE=os.path.join(instance, "iris.db"), UPLOAD_FOLDER=os.path.join(instance, "uploads"),
                       SAMPLE_FOLDER=os.path.join(ROOT, "sample_receipts"), MAX_CONTENT_LENGTH=15 * 1024 * 1024,
-                      SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax")
+                      SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
+                      # Behind HTTPS (any real deployment) the session cookie must not travel over plain HTTP.
+                      SESSION_COOKIE_SECURE=os.environ.get("IRIS_HTTPS") == "1")
     if test_config:
         app.config.update(test_config)
     if not app.config.get("SECRET_KEY"):
-        app.config["SECRET_KEY"] = _secret_key(instance)
+        app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or _secret_key(instance)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     pipeline.configure_tesseract()

@@ -1,0 +1,22 @@
+.git/
+.gitignore
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local runtime data - the deployed app uses the mounted disk at /data instead.
+instance/
+
+# Not needed to run the app.
+report/
+data_synth/
+*_Mini_Project_Report.pdf
+CLAUDE.md
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

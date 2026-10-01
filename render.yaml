@@ -1,0 +1,21 @@
+# Render blueprint: https://render.com/docs/blueprint-spec
+# Pushing this file lets Render create the service and its disk automatically
+# (Dashboard -> New -> Blueprint). Creating the service by hand works too.
+services:
+  - type: web
+    name: iris
+    runtime: docker
+    plan: free
+    region: singapore          # closest free region to India; also: oregon, frankfurt
+    healthCheckPath: /api/health
+    envVars:
+      - key: SECRET_KEY        # Render generates a random value and keeps it
+        generateValue: true
+      - key: IRIS_INSTANCE
+        value: /data
+      - key: IRIS_HTTPS
+        value: "1"
+    disks:
+      - name: iris-data        # keeps iris.db and the uploaded bills across deploys
+        mountPath: /data
+        sizeGB: 1
