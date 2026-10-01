@@ -1,21 +1,42 @@
 # Render blueprint: https://render.com/docs/blueprint-spec
-# Pushing this file lets Render create the service and its disk automatically
-# (Dashboard -> New -> Blueprint). Creating the service by hand works too.
+# Dashboard -> New -> Blueprint -> pick this repository.
 services:
   - type: web
     name: iris
     runtime: docker
     plan: free
-    region: singapore          # closest free region to India; also: oregon, frankfurt
+    region: singapore          # also valid: oregon, ohio, virginia, frankfurt
     healthCheckPath: /api/health
     envVars:
-      - key: SECRET_KEY        # Render generates a random value and keeps it
+      # Generated once by Render and then kept, so logins survive a redeploy.
+      - key: SECRET_KEY
         generateValue: true
-      - key: IRIS_INSTANCE
-        value: /data
       - key: IRIS_HTTPS
         value: "1"
-    disks:
-      - name: iris-data        # keeps iris.db and the uploaded bills across deploys
-        mountPath: /data
-        sizeGB: 1
+
+# ---------------------------------------------------------------------------
+# NOTE ON DATA: a free instance has no persistent disk, so iris.db and the
+# uploaded bills live on the container filesystem and are LOST whenever the
+# service redeploys, restarts, or wakes from its 15-minute idle sleep. That is
+# fine for a demo - visitors register, upload, and see the pipeline work.
+#
+# For storage that survives, switch to a paid instance and attach a disk
+# (Render allows disks on paid services only). Replace the two lines above
+# with the block below:
+#
+#     plan: starter
+#     envVars:
+#       - key: SECRET_KEY
+#         generateValue: true
+#       - key: IRIS_HTTPS
+#         value: "1"
+#       - key: IRIS_INSTANCE
+#         value: /data
+#     disk:
+#       name: iris-data
+#       mountPath: /data
+#       sizeGB: 1
+#
+# `disk` is a single object, not a list. A service with a disk cannot scale
+# past one instance - correct here, because SQLite wants exactly one writer.
+# ---------------------------------------------------------------------------
