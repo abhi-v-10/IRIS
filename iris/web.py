@@ -57,7 +57,7 @@ def upload():
             return redirect(url_for("web.upload"))
         return _process_many(files)
     return render_template("upload.html", tesseract=pipeline.tesseract_version(),
-                           has_samples=bool(_sample_files()))
+                           n_samples=len(_sample_files()))
 
 
 def _process_many(files):

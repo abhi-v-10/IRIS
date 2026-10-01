@@ -8,8 +8,12 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Local runtime data - the deployed app uses the mounted disk at /data instead.
+# Local runtime data - the deployed app writes to IRIS_INSTANCE instead.
 instance/
+
+# demo_seed/ IS copied into the image (the app restores it at start-up), except
+# for the local secret key.
+demo_seed/secret_key
 
 # Not needed to run the app.
 report/

@@ -13,6 +13,9 @@ services:
         generateValue: true
       - key: IRIS_HTTPS
         value: "1"
+      # Restores the pre-built demo account on every cold start.
+      - key: IRIS_DEMO_SEED
+        value: "1"
 
 # ---------------------------------------------------------------------------
 # NOTE ON DATA: a free instance has no persistent disk, so iris.db and the

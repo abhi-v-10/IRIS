@@ -20,10 +20,13 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 COPY . .
 
-# Database, uploads and secret key live on the mounted disk, not in the image:
-# a new deployment replaces the image but keeps the disk.
+# IRIS_INSTANCE    database, uploads and secret key go here (a mounted disk when there is one)
+# IRIS_HTTPS       mark the session cookie Secure, because Render serves HTTPS
+# IRIS_DEMO_SEED   restore demo_seed/ (demo@iris.local, 42 documents) into an empty
+#                  instance folder at start-up, so the demo survives every cold start
 ENV IRIS_INSTANCE=/data \
     IRIS_HTTPS=1 \
+    IRIS_DEMO_SEED=1 \
     PYTHONUNBUFFERED=1
 
 EXPOSE 10000

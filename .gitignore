@@ -24,6 +24,15 @@ secret_key
 *.db
 *.sqlite
 *.sqlite3
+
+# ...but the pre-built demo database IS committed on purpose: the free hosting tier
+# has no persistent disk, so the app restores this copy on every cold start
+# (IRIS_DEMO_SEED=1). It holds only the demo account - no real user data.
+# Rebuild it with:
+#   $env:IRIS_INSTANCE="<repo>\demo_seed"; python tools/seed_demo.py --reset
+#   then delete demo_seed/secret_key
+!demo_seed/iris.db
+demo_seed/secret_key
 .env
 .env.*
 *.pem

@@ -28,12 +28,12 @@
         <span class="muted small" id="upload-hint">Each document takes about 1–3 seconds.</span>
       </div>
     </form>
-    {% if has_samples %}
+    {% if n_samples %}
     <hr style="border:0;border-top:1px solid var(--line);margin:20px 0 14px">
     <form method="post" action="{{ url_for('web.upload_samples') }}" data-busy="Processing the sample documents…" class="actions">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="btn" type="submit" {{ 'disabled' if not tesseract }}>{{ icon('sparkle') }} Load sample documents</button>
-      <span class="muted small">Processes the 5 bundled samples: a GST tax invoice (PDF), a restaurant bill photo, a pharmacy receipt, a blurred fuel receipt and a grocery bill.</span>
+      <span class="muted small">Processes the {{ n_samples }} bundled samples: a GST tax invoice (PDF), a restaurant bill photo, a pharmacy receipt, a blurred fuel receipt, a grocery bill and a card payment slip.</span>
     </form>
     {% endif %}
   </div>
