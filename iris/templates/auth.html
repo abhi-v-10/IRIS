@@ -1,0 +1,54 @@
+{% from "_icons.html" import icon %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ 'Create account' if mode == 'register' else 'Log in' }} · Invoice &amp; Receipt Intelligence</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+  <section class="auth-hero">
+    <div class="brand" style="padding:0"><div class="brand-mark">{{ icon('receipt') }}</div>
+      <div>IRIS<small>Invoice &amp; Receipt Intelligence System</small></div></div>
+    <h1>Turn receipts and invoices into spending insight.</h1>
+    <ul>
+      <li>Upload a photo, scan or PDF of any bill</li>
+      <li>AI + OCR extracts vendor, date, items, tax and total</li>
+      <li>Automatic checks flag anything that doesn't add up</li>
+      <li>Expenses are categorised and summarised on your dashboard</li>
+    </ul>
+  </section>
+  <section class="auth-form">
+    <div class="card">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}<div class="alert alert-{{ cat }}">{{ msg }}</div>{% endfor %}
+      {% endwith %}
+      {% if mode == 'register' %}
+        <h1 style="margin-bottom:4px">Create your account</h1>
+        <p class="muted" style="margin-top:0">Your documents stay private to your account.</p>
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field"><label for="name">Full name</label><input id="name" name="name" type="text" required value="{{ request.form.name }}"></div>
+          <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required value="{{ request.form.email }}"></div>
+          <div class="field"><label for="password">Password <span class="muted">(min. 6 characters)</span></label><input id="password" name="password" type="password" required minlength="6"></div>
+          <div class="field"><label for="confirm">Confirm password</label><input id="confirm" name="confirm" type="password" required></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" type="submit">Create account</button>
+        </form>
+        <p class="small muted" style="margin-bottom:0">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+      {% else %}
+        <h1 style="margin-bottom:4px">Welcome back</h1>
+        <p class="muted" style="margin-top:0">Log in to see your expenses.</p>
+        <form method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required autofocus value="{{ request.form.email }}"></div>
+          <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" required></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" type="submit">Log in</button>
+        </form>
+        <p class="small muted" style="margin-bottom:0">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+</body>
+</html>

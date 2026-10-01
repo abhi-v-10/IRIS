@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ doc.vendor or 'Document' }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a href="{{ url_for('web.documents') }}" class="small">← All documents</a>
+    <h1 style="margin-top:4px">{{ doc.vendor or 'Unknown vendor' }}
+      <span class="badge b-{{ doc.status }}" style="vertical-align:middle">{{ doc.status.replace('_', ' ') }}</span></h1>
+    <p>{{ doc.original_name }} · uploaded {{ doc.uploaded_at[:16] }}{% if doc.processing_ms %} · processed in {{ '%.1f'|format(doc.processing_ms / 1000) }} s{% endif %}</p>
+  </div>
+  <div class="actions">
+    {% if next_review %}<a class="btn" href="{{ url_for('web.document', doc_id=next_review) }}">Next needing review →</a>{% endif %}
+    <form method="post" action="{{ url_for('web.document_delete', doc_id=doc.doc_id) }}" onsubmit="return confirm('Delete this document and its image permanently?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-danger" type="submit">{{ icon('trash') }} Delete</button>
+    </form>
+  </div>
+</div>
+
+{% if flags %}
+  <div class="alert {{ 'alert-warn' if doc.status != 'verified' else 'alert-info' }}">
+    <strong>{{ 'Please check this document:' if doc.status != 'verified' else 'Saved with these notes:' }}</strong>
+    <ul>{% for fl in flags %}<li>{{ flag_text.get(fl, fl) }}
+      {% if fl == 'possible_duplicate' and dup %} <a href="{{ url_for('web.document', doc_id=dup) }}">Open the other document</a>{% endif %}</li>{% endfor %}</ul>
+  </div>
+{% elif doc.status == 'processed' %}
+  <div class="alert alert-success">All automatic checks passed. Review the values and click <strong>Save &amp; verify</strong> to confirm.</div>
+{% endif %}
+
+<div class="review">
+  <div class="card doc-image">
+    <div class="page-head" style="margin-bottom:8px"><h2 style="margin:0">Original</h2>
+      <span class="small muted">Click image to zoom · <a href="{{ url_for('web.document_file', doc_id=doc.doc_id, original=1) }}" target="_blank">open file</a></span></div>
+    <div class="frame"><img src="{{ url_for('web.document_file', doc_id=doc.doc_id) }}" alt="Uploaded document" id="doc-img"></div>
+    {% if doc.ocr_confidence is not none %}
+    <div style="margin-top:12px" class="small">OCR confidence <strong>{{ doc.ocr_confidence }}%</strong>
+      <div class="meter {{ 'low' if doc.ocr_confidence < 75 }}"><span style="width:{{ doc.ocr_confidence }}%"></span></div></div>
+    {% endif %}
+    <details class="ocr" style="margin-top:12px"><summary>Show raw OCR text</summary><pre>{{ doc.ocr_text or '(no text)' }}</pre></details>
+  </div>
+
+  <form class="card" method="post" id="doc-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2>Extracted details</h2>
+    <div class="row">
+      <div class="field"><label for="vendor">Vendor</label><input type="text" id="vendor" name="vendor" value="{{ doc.vendor or '' }}"></div>
+      <div class="field"><label for="date">Date</label><input type="date" id="date" name="date" value="{{ doc.doc_date or '' }}"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="invoice_no">Invoice / bill no.</label><input type="text" id="invoice_no" name="invoice_no" value="{{ doc.invoice_no or '' }}"></div>
+      <div class="field"><label for="gstin">GSTIN</label><input type="text" id="gstin" name="gstin" maxlength="15" value="{{ doc.gstin or '' }}" class="mono"></div>
+    </div>
+    <div class="field"><label for="category_id">Category</label>
+      <select id="category_id" name="category_id">{% for c in cats %}
+        <option value="{{ c.category_id }}" {{ 'selected' if c.category_id == doc.category_id }}>{{ c.name }}</option>{% endfor %}</select></div>
+
+    <h3 style="margin-top:18px">Line items</h3>
+    <div class="table-wrap"><table class="data items" id="items">
+      <thead><tr><th>Item</th><th class="c-qty">Qty</th><th class="c-amt num">Amount (₹)</th><th class="c-del"></th></tr></thead>
+      <tbody>
+      {% for it in items %}
+        <tr><td><input type="text" name="item_name" value="{{ it.name }}" aria-label="Item name"></td>
+          <td><input type="number" name="item_qty" value="{{ it.qty }}" min="1" step="1" aria-label="Quantity"></td>
+          <td><input type="number" name="item_amount" value="{{ '%.2f'|format(it.amount) }}" step="0.01" class="num" aria-label="Amount"></td>
+          <td><button type="button" class="icon-btn" data-remove title="Remove item">✕</button></td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <template id="item-row"><tr><td><input type="text" name="item_name" aria-label="Item name"></td>
+      <td><input type="number" name="item_qty" value="1" min="1" step="1" aria-label="Quantity"></td>
+      <td><input type="number" name="item_amount" step="0.01" class="num" aria-label="Amount"></td>
+      <td><button type="button" class="icon-btn" data-remove title="Remove item">✕</button></td></tr></template>
+    <button type="button" class="btn btn-sm" id="add-item" style="margin-top:8px">{{ icon('plus') }} Add item</button>
+
+    <div class="row row-3" style="margin-top:18px">
+      <div class="field"><label for="subtotal">Subtotal (₹)</label><input type="number" step="0.01" id="subtotal" name="subtotal" value="{{ '%.2f'|format(doc.subtotal) if doc.subtotal is not none }}"></div>
+      <div class="field"><label for="tax">Tax / GST (₹)</label><input type="number" step="0.01" id="tax" name="tax" value="{{ '%.2f'|format(doc.tax) if doc.tax is not none }}"></div>
+      <div class="field"><label for="total">Total (₹)</label><input type="number" step="0.01" id="total" name="total" value="{{ '%.2f'|format(doc.total) if doc.total is not none }}" style="font-weight:700"></div>
+    </div>
+    <div class="card" style="background:#f8fafc;padding:10px 12px;box-shadow:none" id="checks">
+      <div class="sum-line"><span>Sum of line items</span><span id="chk-items">–</span></div>
+      <div class="sum-line"><span>Items vs subtotal</span><span id="chk-sub">–</span></div>
+      <div class="sum-line"><span>Subtotal (or items) + tax vs total</span><span id="chk-total">–</span></div>
+    </div>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn btn-primary" type="submit">{{ icon('check') }} Save &amp; verify</button>
+      <span class="muted small">Your corrections are saved and the document is marked verified.</span>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script>IRIS.review();</script>{% endblock %}

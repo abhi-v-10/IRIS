@@ -1,0 +1,59 @@
+# ---- Python ----
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# ---- Runtime data: NEVER commit (holds the SQLite DB, the Flask secret key
+#      and every uploaded bill image, i.e. real user data) ----
+instance/
+
+# Defence in depth, in case any of these ever appear outside instance/
+secret_key
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+*.pem
+*.key
+
+# ---- Generated test data (deterministic: regenerate with
+#      `python tools/gen_receipts.py data_synth`) ----
+data_synth/
+
+# ---- College report (not part of the prototype) ----
+# The ~30-page PDF report and its whole ReportLab build system exist only for
+# the college submission, so they stay out of the repository. Keep a backup of
+# report/ outside the repo: its hand-drawn diagrams (report/fig/arch.png,
+# dfd1.png, er.png, flowchart.png, pipeline.png, preproc.png, usecase.png)
+# have no generator script and cannot be rebuilt from this code.
+report/
+AI_Invoice_Receipt_Intelligence_Mini_Project_Report.pdf
+*_Mini_Project_Report.pdf
+
+# ---- Exports produced while using the app ----
+iris_export*.csv
+iris_report*.pdf
+
+# ---- Editors / OS junk ----
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*~
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store

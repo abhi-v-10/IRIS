@@ -1,0 +1,45 @@
+{% from "_icons.html" import icon %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · Invoice &amp; Receipt Intelligence</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231f8a7e'/%3E%3Cpath d='M7 5h10v14l-2.5-1.5L12 19l-2.5-1.5L7 19V5z' fill='white'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">{{ icon('receipt') }}</div>
+      <div>IRIS<small>Invoice &amp; Receipt<br>Intelligence System</small></div>
+    </div>
+    {% set ep = request.endpoint or '' %}
+    <nav class="nav">
+      <a href="{{ url_for('web.dashboard') }}" class="{{ 'active' if ep == 'web.dashboard' }}">{{ icon('dashboard') }}<span class="lbl">Dashboard</span></a>
+      <a href="{{ url_for('web.upload') }}" class="{{ 'active' if ep == 'web.upload' }}">{{ icon('upload') }}<span class="lbl">Upload</span></a>
+      <a href="{{ url_for('web.documents') }}" class="{{ 'active' if ep in ('web.documents', 'web.document') }}">{{ icon('docs') }}<span class="lbl">Documents</span>{% if review_count %}<span class="badge b-count" title="Documents needing review">{{ review_count }}</span>{% endif %}</a>
+      <a href="{{ url_for('web.categories') }}" class="{{ 'active' if ep == 'web.categories' }}">{{ icon('tag') }}<span class="lbl">Categories</span></a>
+      <a href="{{ url_for('web.settings') }}" class="{{ 'active' if ep == 'web.settings' }}">{{ icon('settings') }}<span class="lbl">Settings &amp; API</span></a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="who">Signed in as<br><strong>{{ g.user['name'] }}</strong></div>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="linklike" type="submit">Log out</button>
+      </form>
+    </div>
+  </aside>
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="alert alert-{{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<div class="overlay" id="busy"><div style="text-align:center"><div class="spinner"></div>
+  <strong id="busy-text">Reading your document…</strong><div class="muted small">Pre-processing, OCR, extraction and checks</div></div></div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

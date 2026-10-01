@@ -1,0 +1,9 @@
+flask>=3.0
+opencv-python-headless>=4.8,<5    # report numbers measured with OpenCV 4.14 + Tesseract 5.5.3
+numpy>=1.24
+pillow>=10.0
+pillow-heif>=0.16                 # HEIC/HEIF photos (iPhone)
+pytesseract>=0.3.10
+pypdfium2>=4.20
+reportlab>=4.0
+pytest>=7.4

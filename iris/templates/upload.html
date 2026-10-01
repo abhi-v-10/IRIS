@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Upload{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Upload receipts &amp; invoices</h1>
+  <p>Photos, scans or PDFs. Several files can be uploaded at once.</p></div></div>
+
+{% if not tesseract %}
+<div class="alert alert-error"><strong>The Tesseract OCR engine was not found.</strong> Uploads will not work until it is installed.
+  <ul><li>Windows: install it from the UB Mannheim build (see README step 1) and restart the app. If you installed it to a
+  different folder, set the <code>TESSERACT_CMD</code> environment variable to the path of <code>tesseract.exe</code>.</li>
+  <li>Ubuntu/Debian: <code>sudo apt install tesseract-ocr</code> · macOS: <code>brew install tesseract</code></li></ul></div>
+{% endif %}
+
+<div class="grid g-main">
+  <div class="card">
+    <form method="post" enctype="multipart/form-data" id="upload-form" data-busy="Reading your document(s)…">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="dropzone" id="dropzone" for="files">
+        {{ icon('upload') }}
+        <div style="font-weight:600;margin-top:8px">Drag files here or click to choose</div>
+        <div class="muted small">JPG, PNG, HEIC or PDF · up to 15 MB per upload · on a phone you can take a photo directly</div>
+        <input type="file" id="files" name="files" multiple accept=".jpg,.jpeg,.png,.heic,.heif,.pdf,image/jpeg,image/png,image/heic,image/heif,application/pdf">
+        <ul class="file-list" id="file-list"></ul>
+      </label>
+      <div class="actions" style="margin-top:14px">
+        <button class="btn btn-teal" type="submit" id="upload-btn" {{ 'disabled' if not tesseract }}>{{ icon('upload') }} Upload and extract</button>
+        <span class="muted small" id="upload-hint">Each document takes about 1–3 seconds.</span>
+      </div>
+    </form>
+    {% if has_samples %}
+    <hr style="border:0;border-top:1px solid var(--line);margin:20px 0 14px">
+    <form method="post" action="{{ url_for('web.upload_samples') }}" data-busy="Processing the sample documents…" class="actions">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit" {{ 'disabled' if not tesseract }}>{{ icon('sparkle') }} Load sample documents</button>
+      <span class="muted small">Processes the 5 bundled samples: a GST tax invoice (PDF), a restaurant bill photo, a pharmacy receipt, a blurred fuel receipt and a grocery bill.</span>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>What happens to each document</h2>
+    <ol class="steps">
+      <li><strong>Pre-processing</strong> – resize, denoise, straighten (deskew) and convert to clean black-and-white.</li>
+      <li><strong>OCR</strong> – Tesseract reads the text and reports how confident it is.</li>
+      <li><strong>Extraction</strong> – vendor, GSTIN, invoice number, date, line items, subtotal, tax and total.</li>
+      <li><strong>Validation</strong> – items, subtotal, tax and total are cross-checked; problems are flagged for review.</li>
+      <li><strong>Categorisation</strong> – matched against your category keywords, then saved and added to the dashboard.</li>
+    </ol>
+    <p class="small muted" style="margin:4px 0 0">Tips: photograph the bill flat, in good light, filling the frame. Thermal receipts fade, so upload them soon.</p>
+  </div>
+</div>
+{% endblock %}

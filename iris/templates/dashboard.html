@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_filters.html" import filter_bar %}
+{% from "_icons.html" import icon %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Spending dashboard</h1><p>Summaries, trends and insights from your receipts and invoices.</p></div>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('web.export_csv', **f) }}">{{ icon('download') }} CSV</a>
+    <a class="btn" href="{{ url_for('web.export_pdf', **f) }}">{{ icon('download') }} PDF report</a>
+    <a class="btn btn-teal" href="{{ url_for('web.upload') }}">{{ icon('upload') }} Upload</a>
+  </div>
+</div>
+
+{% if not s.kpis.documents and not f %}
+  <div class="card empty">
+    {{ icon('receipt') }}
+    <h2 style="margin-top:12px">No documents yet</h2>
+    <p class="muted">Upload a photo, scan or PDF of a receipt or invoice, or load the bundled sample documents to see the system in action.</p>
+    <div class="actions" style="justify-content:center">
+      <a class="btn btn-teal" href="{{ url_for('web.upload') }}">{{ icon('upload') }} Upload a document</a>
+      <form method="post" action="{{ url_for('web.upload_samples') }}" data-busy="Processing the sample documents…">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn" type="submit">{{ icon('sparkle') }} Load sample documents</button>
+      </form>
+    </div>
+  </div>
+{% else %}
+  {{ filter_bar(f, cats, url_for('web.dashboard'), show_status=false, show_search=false) }}
+
+  <div class="grid g-4" style="margin-bottom:16px">
+    <div class="card kpi"><div class="label">Total spent</div><div class="value">{{ s.kpis.spent|money }}</div>
+      <div class="sub">across {{ s.kpis.documents }} document{{ '' if s.kpis.documents == 1 else 's' }}</div></div>
+    <div class="card kpi"><div class="label">Average bill</div><div class="value">{{ s.kpis.average|money }}</div>
+      <div class="sub">per document</div></div>
+    <div class="card kpi"><div class="label">Top category</div>
+      <div class="value" style="font-size:1.3rem">{{ s.by_category[0].category if s.by_category else '–' }}</div>
+      <div class="sub">{% if s.by_category %}{{ s.by_category[0].spent|money }}{% endif %}</div></div>
+    <a class="card kpi {{ 'warn' if s.kpis.needs_review }}" href="{{ url_for('web.documents', status='needs_review') }}" style="color:inherit;text-decoration:none">
+      <div class="label">Needs review</div><div class="value">{{ s.kpis.needs_review }}</div>
+      <div class="sub">{{ s.kpis.verified }} verified{% if s.kpis.ocr_confidence %} · OCR confidence {{ s.kpis.ocr_confidence }}%{% endif %}</div></a>
+  </div>
+
+  {% if not s.kpis.documents %}
+    <div class="card empty"><h2>No documents match these filters</h2><a class="btn" href="{{ url_for('web.dashboard') }}">Clear filters</a></div>
+  {% else %}
+  <div class="grid g-main" style="margin-bottom:16px">
+    <div class="card"><h2>Monthly spending trend</h2><div class="chart-box tall"><canvas id="chartMonthly" aria-label="Monthly spending"></canvas></div></div>
+    <div class="card"><h2>Spend by category</h2><div class="chart-box tall"><canvas id="chartCategory" aria-label="Spend by category"></canvas></div></div>
+  </div>
+  <div class="grid g-main" style="margin-bottom:16px">
+    <div class="card"><h2>Insights</h2>
+      <ul class="insights">{% for kind, text in s.insights %}<li><span class="dot {{ kind }}"></span><span>{{ text }}</span></li>{% endfor %}</ul>
+    </div>
+    <div class="card"><h2>Top vendors</h2><div class="chart-box"><canvas id="chartVendors" aria-label="Top vendors"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="page-head" style="margin-bottom:6px"><h2 style="margin:0">Recent documents</h2><a href="{{ url_for('web.documents', **f) }}">View all →</a></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>Date</th><th>Vendor</th><th>Category</th><th class="num">Total</th><th>Status</th></tr></thead>
+      <tbody>{% for d in recent %}
+        <tr class="clickable" data-href="{{ url_for('web.document', doc_id=d.doc_id) }}">
+          <td>{{ d.doc_date|nicedate }}</td><td><a href="{{ url_for('web.document', doc_id=d.doc_id) }}">{{ d.vendor or 'Unknown vendor' }}</a></td>
+          <td><span class="chip">{{ d.category or 'Others' }}</span></td><td class="num">{{ d.total|money }}</td>
+          <td><span class="badge b-{{ d.status }}">{{ d.status.replace('_', ' ') }}</span></td></tr>{% endfor %}
+      </tbody></table></div>
+  </div>
+  {% endif %}
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if s.kpis.documents %}
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<script>IRIS.dashboard({{ chart_data|safe }});</script>
+{% endif %}
+{% endblock %}

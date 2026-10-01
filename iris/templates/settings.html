@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Settings & API{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Settings &amp; API</h1><p>Your account, system status and REST API access.</p></div></div>
+<div class="grid g-2">
+  <div class="card">
+    <h2>Account</h2>
+    <table class="data"><tbody>
+      <tr><td class="muted">Name</td><td>{{ g.user['name'] }}</td></tr>
+      <tr><td class="muted">Email</td><td>{{ g.user['email'] }}</td></tr>
+      <tr><td class="muted">Member since</td><td>{{ g.user['created_at'][:10]|nicedate }}</td></tr>
+    </tbody></table>
+    <h2 style="margin-top:20px">System status</h2>
+    <table class="data"><tbody>
+      <tr><td class="muted">OCR engine</td><td>{% if tesseract %}<span class="badge b-verified">Tesseract {{ tesseract }}</span>{% else %}<span class="badge b-needs_review">Not found</span>{% endif %}</td></tr>
+      <tr><td class="muted">Accepted files</td><td>JPG, PNG, HEIC, PDF (first page)</td></tr>
+      <tr><td class="muted">Storage</td><td>Local SQLite database; files kept on this computer only</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <h2>REST API</h2>
+    <p class="small muted" style="margin-top:0">Send your key in the <code>Authorization</code> header. Keep it private: it gives access to your documents.</p>
+    <label>Your API key</label>
+    <div style="display:flex;gap:8px"><input type="text" readonly value="{{ g.user['api_key'] }}" id="api-key" class="mono">
+      <button class="btn btn-sm" type="button" onclick="navigator.clipboard.writeText(document.getElementById('api-key').value);this.textContent='Copied'">Copy</button></div>
+    <h3 style="margin-top:16px">Examples</h3>
+    <pre class="mono" style="background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:10px;white-space:pre-wrap;font-size:.78rem">curl -H "Authorization: Bearer {{ g.user['api_key'] }}" \
+  -F "file=@receipt.jpg" {{ request.host_url }}api/upload
+
+curl -H "Authorization: Bearer {{ g.user['api_key'] }}" \
+  {{ request.host_url }}api/summary
+
+curl -X PUT -H "Authorization: Bearer {{ g.user['api_key'] }}" \
+  -H "Content-Type: application/json" -d '{"total": 520.00}' \
+  {{ request.host_url }}api/documents/1</pre>
+    <table class="data small"><thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead><tbody>
+      <tr><td>POST</td><td class="mono">/api/upload</td><td>Upload file(s); returns extracted data</td></tr>
+      <tr><td>GET</td><td class="mono">/api/documents</td><td>List documents (same filters as the web page)</td></tr>
+      <tr><td>GET</td><td class="mono">/api/documents/&lt;id&gt;</td><td>One document with its line items</td></tr>
+      <tr><td>PUT</td><td class="mono">/api/documents/&lt;id&gt;</td><td>Correct fields; marks it verified</td></tr>
+      <tr><td>DELETE</td><td class="mono">/api/documents/&lt;id&gt;</td><td>Delete a document</td></tr>
+      <tr><td>GET</td><td class="mono">/api/summary</td><td>KPIs, category, monthly, vendor totals and insights</td></tr>
+      <tr><td>GET</td><td class="mono">/api/health</td><td>Is the OCR engine available? (no key needed)</td></tr>
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

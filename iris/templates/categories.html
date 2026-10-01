@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Categories</h1><p>Each document is placed in the category whose keywords best match its vendor and item names.</p></div>
+  <form method="post" class="actions">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="recategorize">
+    <button class="btn" type="submit" title="Re-run the categorizer on all documents you have not verified">Re-apply to documents</button>
+  </form>
+</div>
+<div class="grid g-main">
+  <div class="card">
+    {% for c in cats %}
+    {% set n, spent = counts.get(c.category_id, (0, 0)) %}
+    <div class="cat-row">
+      <div><strong>{{ c.name }}</strong><div class="stats">{{ n }} document{{ '' if n == 1 else 's' }} · {{ (spent or 0)|money }}</div></div>
+      <form method="post" id="kw-{{ c.category_id }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="save"><input type="hidden" name="category_id" value="{{ c.category_id }}">
+        {% if c.name == 'Others' %}
+          <p class="small muted" style="margin:4px 0">Used when no keyword matches. It cannot be deleted.</p>
+        {% else %}
+          <textarea name="keywords" aria-label="Keywords for {{ c.name }}" placeholder="space-separated keywords, e.g. swiggy zomato cafe">{{ c.keywords }}</textarea>
+        {% endif %}
+      </form>
+      <div class="actions">
+        {% if c.name != 'Others' %}
+        <button class="btn btn-sm" type="submit" form="kw-{{ c.category_id }}">Save</button>
+        <form method="post" onsubmit="return confirm('Delete {{ c.name }}? Its documents move to Others.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="delete"><input type="hidden" name="category_id" value="{{ c.category_id }}">
+          <button class="btn btn-sm btn-danger" type="submit" title="Delete category">{{ icon('trash') }}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="stack">
+    <form class="card" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="add">
+      <h2>Add a category</h2>
+      <div class="field"><label for="new-name">Name</label><input type="text" id="new-name" name="name" maxlength="40" required placeholder="e.g. Education"></div>
+      <div class="field"><label for="new-kw">Keywords</label><textarea id="new-kw" name="keywords" placeholder="books stationery tuition fees"></textarea></div>
+      <button class="btn btn-teal" type="submit">{{ icon('plus') }} Add category</button>
+    </form>
+    <div class="card small">
+      <h3>How categorisation works</h3>
+      <p class="muted" style="margin:0">The vendor name and item names are compared with each category's keywords (whole words, case-insensitive).
+        The category with the most matching keywords wins; if nothing matches, the document goes to <em>Others</em>.
+        Changing a document's category on its review page always overrides this.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

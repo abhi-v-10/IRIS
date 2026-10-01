@@ -1,0 +1,44 @@
+{
+ "gst_tax_invoice.pdf": {
+  "vendor": "Circuit Point Electronics",
+  "total": 5777.280000000001,
+  "date": "2026-08-14",
+  "subtotal": 4896.0,
+  "tax": 881.28
+ },
+ "restaurant_bill.jpg": {
+  "vendor": "Spice Route Restaurant",
+  "total": 1113.0,
+  "date": "2026-09-21",
+  "subtotal": 1060.0,
+  "tax": 53.0
+ },
+ "pharmacy_receipt.png": {
+  "vendor": "Careplus Pharmacy",
+  "total": 478.24,
+  "date": "2026-09-05",
+  "subtotal": 427.0,
+  "tax": 51.24
+ },
+ "fuel_receipt.jpg": {
+  "vendor": "Metro Fuel Station",
+  "total": 520.0,
+  "date": "2026-09-17",
+  "subtotal": null,
+  "tax": null
+ },
+ "grocery_receipt.png": {
+  "vendor": "Freshmart Supermarket",
+  "total": 1426.95,
+  "date": "2026-09-28",
+  "subtotal": 1359.0,
+  "tax": 67.95
+ },
+ "card_payment_slip.jpg": {
+  "vendor": "Sunrise Fuel Station",
+  "total": 650.0,
+  "date": "2026-09-15",
+  "subtotal": null,
+  "tax": null
+ }
+}

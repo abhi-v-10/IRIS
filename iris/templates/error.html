@@ -1,0 +1,12 @@
+{% extends "base.html" if g.user else "error_bare.html" %}
+{% block title %}Error {{ code }}{% endblock %}
+{% block content %}
+<div class="card empty">
+  <h1 style="font-size:2.4rem;color:var(--ink-3)">{{ code }}</h1>
+  <p>{{ message }}</p>
+  <div class="actions" style="justify-content:center">
+    <a class="btn" href="javascript:history.back()">Go back</a>
+    <a class="btn btn-primary" href="{{ url_for('web.dashboard') }}">Dashboard</a>
+  </div>
+</div>
+{% endblock %}

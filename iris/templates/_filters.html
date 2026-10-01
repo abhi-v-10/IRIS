@@ -1,0 +1,22 @@
+{% macro filter_bar(f, cats, action, show_status=true, show_search=true) %}
+<form class="card filters" method="get" action="{{ action }}" style="margin-bottom:16px;padding:14px 16px">
+  <div class="field"><label for="date_from">From</label><input type="date" id="date_from" name="date_from" value="{{ f.date_from }}"></div>
+  <div class="field"><label for="date_to">To</label><input type="date" id="date_to" name="date_to" value="{{ f.date_to }}"></div>
+  <div class="field"><label for="category">Category</label>
+    <select id="category" name="category"><option value="">All categories</option>
+      {% for c in cats %}<option value="{{ c.category_id }}" {{ 'selected' if f.category == c.category_id|string }}>{{ c.name }}</option>{% endfor %}
+    </select></div>
+  {% if show_status %}
+  <div class="field"><label for="status">Status</label>
+    <select id="status" name="status"><option value="">Any status</option>
+      {% for v, l in [('needs_review','Needs review'),('processed','Processed'),('verified','Verified')] %}
+        <option value="{{ v }}" {{ 'selected' if f.status == v }}>{{ l }}</option>{% endfor %}
+    </select></div>
+  {% endif %}
+  {% if show_search %}
+  <div class="field grow"><label for="q">Search vendor or invoice no.</label><input type="text" id="q" name="q" value="{{ f.q }}" placeholder="e.g. FreshMart"></div>
+  {% endif %}
+  <div class="actions"><button class="btn btn-primary" type="submit">Apply</button>
+    {% if f %}<a class="btn" href="{{ action }}">Clear</a>{% endif %}</div>
+</form>
+{% endmacro %}

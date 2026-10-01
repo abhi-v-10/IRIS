@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_filters.html" import filter_bar %}
+{% from "_icons.html" import icon %}
+{% block title %}Documents{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Documents</h1><p>{{ docs|length }} document{{ '' if docs|length == 1 else 's' }}{% if f %} matching your filters{% endif %} · {{ total|money }}</p></div>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('web.export_csv', **f) }}">{{ icon('download') }} Export CSV</a>
+    <a class="btn" href="{{ url_for('web.export_pdf', **f) }}">{{ icon('download') }} Export PDF</a>
+    <a class="btn btn-teal" href="{{ url_for('web.upload') }}">{{ icon('upload') }} Upload</a>
+  </div>
+</div>
+{{ filter_bar(f, cats, url_for('web.documents')) }}
+<div class="card" style="padding:6px 8px">
+  {% if docs %}
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Date</th><th>Vendor</th><th>Invoice no.</th><th>Category</th><th class="num">Items</th>
+      <th class="num">Tax</th><th class="num">Total</th><th class="num">OCR conf.</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for d in docs %}
+      <tr class="clickable" data-href="{{ url_for('web.document', doc_id=d.doc_id) }}">
+        <td>{{ d.doc_date|nicedate }}</td>
+        <td><a href="{{ url_for('web.document', doc_id=d.doc_id) }}">{{ d.vendor or 'Unknown vendor' }}</a>
+          <div class="muted small">{{ d.original_name }}</div></td>
+        <td class="mono">{{ d.invoice_no or '–' }}</td>
+        <td><span class="chip">{{ d.category or 'Others' }}</span></td>
+        <td class="num">{{ d.n_items }}</td>
+        <td class="num">{{ d.tax|money if d.tax is not none else '–' }}</td>
+        <td class="num"><strong>{{ d.total|money }}</strong></td>
+        <td class="num">{{ '%.0f'|format(d.ocr_confidence) ~ '%' if d.ocr_confidence is not none else '–' }}</td>
+        <td><span class="badge b-{{ d.status }}">{{ d.status.replace('_', ' ') }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><td colspan="6">Total</td><td class="num">{{ total|money }}</td><td colspan="2"></td></tr></tfoot>
+  </table></div>
+  {% else %}
+  <div class="empty">{{ icon('docs') }}
+    <h2 style="margin-top:10px">{{ 'No documents match these filters' if f else 'No documents yet' }}</h2>
+    {% if f %}<a class="btn" href="{{ url_for('web.documents') }}">Clear filters</a>
+    {% else %}<a class="btn btn-teal" href="{{ url_for('web.upload') }}">Upload your first document</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
