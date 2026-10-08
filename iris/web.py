@@ -34,8 +34,14 @@ def _filters_text(f, cats):
     return ", ".join(parts) or "all documents"
 
 
-# ------------------------------------------------------------ dashboard
+# ------------------------------------------------------------ landing page
 @bp.route("/")
+def home():
+    return render_template("home.html")
+
+
+# ------------------------------------------------------------ dashboard
+@bp.route("/dashboard")
 @login_required
 def dashboard():
     f, cats = _filters_and_categories()

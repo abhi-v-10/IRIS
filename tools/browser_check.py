@@ -85,7 +85,7 @@ def workflow(browser, base, width, height, tag):
         assert dl.value.suggested_filename.endswith(ext)
     step("exported CSV and PDF")
 
-    page.goto(base + "/")
+    page.goto(base + "/dashboard")
     page.locator("form[action='/logout'] button").click()
     expect(page.locator(".alert-success")).to_contain_text("logged out"); step("logged out")
     ctx.close()
@@ -115,7 +115,7 @@ def screenshots(browser, base):
 
     ctx = browser.new_context(viewport=dict(width=1280, height=900), device_scale_factor=2)
     page = login(ctx)
-    page.goto(base + "/"); shot(page, "s_dash_top.png", 780)
+    page.goto(base + "/dashboard"); shot(page, "s_dash_top.png", 780)
     page.goto(base + "/upload")
     page.set_input_files("#files", [os.path.join(SAMPLES, "restaurant_bill.jpg"), os.path.join(SAMPLES, "gst_tax_invoice.pdf")])
     shot(page, "s_upload.png", 560)

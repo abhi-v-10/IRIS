@@ -192,9 +192,9 @@ def test_pages_require_login(app):
 def test_register_login_logout(app):
     c = app.test_client()
     assert register(c).status_code == 302
-    assert "Spending dashboard" in c.get("/").get_data(as_text=True)
-    c.post("/logout", data={"csrf_token": token(c, "/")})
-    assert c.get("/").status_code == 302
+    assert "Spending dashboard" in c.get("/dashboard").get_data(as_text=True)
+    c.post("/logout", data={"csrf_token": token(c, "/dashboard")})
+    assert c.get("/dashboard").status_code == 302
     bad = c.post("/login", data=dict(csrf_token=token(c), email="asha@example.com", password="wrong"))
     assert "Incorrect email or password" in bad.get_data(as_text=True)
     ok = c.post("/login", data=dict(csrf_token=token(c), email="ASHA@example.com", password="secret1"))
@@ -330,7 +330,7 @@ def loaded(app):
 
 @needs_ocr
 def test_dashboard_and_filters(loaded, app):
-    html = loaded.get("/").get_data(as_text=True)
+    html = loaded.get("/dashboard").get_data(as_text=True)
     assert "Insights" in html and "largest expense head" in html and "chartMonthly" in html
     import sqlite3
     health = sqlite3.connect(app.config["DATABASE"]).execute(

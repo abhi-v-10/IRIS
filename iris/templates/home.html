@@ -1,0 +1,80 @@
+{% from "_icons.html" import icon %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IRIS · Invoice &amp; Receipt Intelligence</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .lp-wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    .lp-nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+    .lp-nav .brand { color: var(--navy); padding: 0; }
+    .lp-nav .brand small { color: var(--ink-3); }
+    .lp-nav .links { display: flex; gap: 10px; }
+    .lp-hero { text-align: center; padding: 56px 0 44px; }
+    .lp-hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.15; color: var(--navy); margin: 0 auto 14px; max-width: 760px; }
+    .lp-hero p { color: var(--ink-2); font-size: 1.1rem; max-width: 600px; margin: 0 auto 26px; }
+    .lp-hero .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .lp-hero .btn { padding: 11px 22px; font-size: 1rem; }
+    .lp-steps, .lp-feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+    .lp-steps { counter-reset: s; margin-bottom: 44px; }
+    .lp-steps .card::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 30px; height: 30px;
+      border-radius: 50%; background: var(--teal-soft); color: var(--teal); font-weight: 700; margin-bottom: 10px; }
+    .lp-wrap h2 { text-align: center; color: var(--navy); margin: 0 0 20px; }
+    .lp-wrap .card h3 { margin: 0 0 6px; font-size: 1.02rem; color: var(--navy); }
+    .lp-wrap .card p { margin: 0; color: var(--ink-2); font-size: .93rem; }
+    .lp-feats { margin-bottom: 52px; }
+    .lp-feats .ico { width: 36px; height: 36px; border-radius: 8px; background: var(--navy); color: #fff; display: grid; place-items: center; margin-bottom: 10px; }
+    .lp-feats .ico svg { width: 20px; height: 20px; }
+    .lp-foot { border-top: 1px solid var(--line); padding: 20px 0 28px; text-align: center; color: var(--ink-3); font-size: .85rem; }
+  </style>
+</head>
+<body>
+<div class="lp-wrap">
+  <nav class="lp-nav">
+    <div class="brand"><div class="brand-mark" style="color:#fff">{{ icon('receipt') }}</div>
+      <div>IRIS<small>Invoice &amp; Receipt Intelligence</small></div></div>
+    <div class="links">
+      {% if g.user %}
+        <a class="btn btn-primary" href="{{ url_for('web.dashboard') }}">Open dashboard</a>
+      {% else %}
+        <a class="btn" href="{{ url_for('auth.login') }}">Log in</a>
+        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Sign up</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <header class="lp-hero">
+    <h1>Turn receipts and invoices into spending insight.</h1>
+    <p>Upload a photo, scan or PDF of any bill. IRIS reads it, checks the numbers and shows where your money goes.</p>
+    <div class="cta">
+      {% if g.user %}
+        <a class="btn btn-primary" href="{{ url_for('web.upload') }}">{{ icon('upload') }} Upload a bill</a>
+        <a class="btn" href="{{ url_for('web.dashboard') }}">Go to dashboard</a>
+      {% else %}
+        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Get started</a>
+        <a class="btn" href="{{ url_for('auth.login') }}">Log in</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <h2>How it works</h2>
+  <section class="lp-steps">
+    <div class="card"><h3>Upload</h3><p>Add a photo, scan or PDF of a bill.</p></div>
+    <div class="card"><h3>Read</h3><p>OCR extracts vendor, date, items, tax and total.</p></div>
+    <div class="card"><h3>Check</h3><p>Automatic checks flag anything that does not add up.</p></div>
+    <div class="card"><h3>Understand</h3><p>Expenses are categorised and summarised for you.</p></div>
+  </section>
+
+  <h2>What you get</h2>
+  <section class="lp-feats">
+    <div class="card"><div class="ico">{{ icon('check') }}</div><h3>Built-in validation</h3><p>Items, tax and totals are cross-checked. Doubtful bills go to review.</p></div>
+    <div class="card"><div class="ico">{{ icon('tag') }}</div><h3>Smart categories</h3><p>Food, fuel, travel and more. Edit the keywords to suit you.</p></div>
+    <div class="card"><div class="ico">{{ icon('dashboard') }}</div><h3>Clear dashboard</h3><p>Monthly trends, top vendors and plain-language insights.</p></div>
+    <div class="card"><div class="ico">{{ icon('download') }}</div><h3>Export anywhere</h3><p>Download your data as CSV or a PDF report.</p></div>
+  </section>
+
+  <footer class="lp-foot">IRIS · B.Tech CSE Mini Project · Chaitanya (Deemed to be University), Hyderabad · 2026-27</footer>
+</div>
+</body>
+</html>
