@@ -51,7 +51,7 @@
     const palette = ["#1f3a5f", "#1f8a7e", "#e0a33b", "#c8553d", "#6f63b3", "#3f88c5", "#8c9aa8", "#9c6b3f", "#4c9a5a"];
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
     Chart.defaults.color = "#4a5468";
-    const money = { callbacks: { label: (c) => ` ${c.label || c.dataset.label}: ${inr(c.parsed.y ?? c.parsed.x ?? c.parsed)}` } };
+    const money = { callbacks: { label: (c) => ` ${c.label || c.dataset.label}: ${inr(c.chart.options.indexAxis === "y" ? c.parsed.x : c.parsed.y)}` } };
 
     new Chart($("#chartMonthly"), {
       type: "bar",

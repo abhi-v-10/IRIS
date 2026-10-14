@@ -354,12 +354,83 @@ def parse_vendor(text):
     return None
 
 
+# ---- GSTIN: 2 digits state + 5 letters + 4 digits + 1 letter (PAN) + entity 1-9/A-Z + 'Z' + check char
+GSTIN_STRICT = re.compile(r"\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b")
+GSTIN_LABEL = re.compile(r"gst\s*-?\s*in\b|gstin|gst\s*(?:no|number|reg\w*|#)", re.I)
+# Characters OCR confuses, by the kind of slot they sit in
+_TO_DIGIT = {"O": "0", "Q": "0", "D": "0", "I": "1", "L": "1", "|": "1", "Z": "2", "S": "5", "B": "8", "G": "6", "T": "7"}
+_TO_LETTER = {"0": "O", "1": "I", "2": "Z", "5": "S", "8": "B", "6": "G", "4": "A", "7": "T"}
+# slot kinds: d digit, a letter, x digit or letter, z fixed 'Z'
+_GSTIN_SLOTS = "dd" + "aaaaa" + "dddd" + "a" + "x" + "z" + "x"
+
+
+def _fit_gstin(chars):
+    """Force 15 characters into the GSTIN pattern by fixing look-alikes; return (text, fixes) or None."""
+    out, fixes = [], 0
+    for ch, kind in zip(chars, _GSTIN_SLOTS):
+        c = ch
+        if kind == "d" and not c.isdigit():
+            c = _TO_DIGIT.get(c)
+        elif kind == "a" and not c.isalpha():
+            c = _TO_LETTER.get(c)
+        elif kind == "z" and c != "Z":
+            c = "Z" if c in "2527" else None
+        elif kind == "x" and not c.isalnum():
+            c = None
+        if c is None:
+            return None
+        fixes += c != ch
+        out.append(c)
+    text = "".join(out)
+    if not 1 <= int(text[:2]) <= 38 or text[12] == "0":     # real state codes only; entity number is 1-9/A-Z
+        return None
+    return text, fixes
+
+
+def parse_gstin(text):
+    """Find the GSTIN. A clean match anywhere wins; otherwise repair the text next to a 'GSTIN' label.
+
+    OCR often reads such a number with one stray character (3G6ABC...) or look-alikes (B/8, Z/2, I/1, O/0).
+    The repair only fires beside the label, tries dropping one character, and accepts a result only when it
+    fits the pattern with a valid state code and no equally good alternative - otherwise the field stays empty.
+    """
+    up = text.upper()
+    m = GSTIN_STRICT.search(up)
+    if m:
+        return m.group(0)
+    for line in up.splitlines():
+        lab = GSTIN_LABEL.search(line)
+        if not lab:
+            continue
+        run = re.sub(r"[^A-Z0-9|]", "", line[lab.end():])[:18]
+        cands = {}
+        if len(run) >= 15:
+            for drop in (None,) + tuple(range(min(len(run), 17))):
+                if drop is None:
+                    chars = run
+                elif len(run) > 15:                      # dropping a character only makes sense when there is one too many
+                    chars = run[:drop] + run[drop + 1:]
+                else:
+                    continue
+                fit = _fit_gstin(chars[:15]) if len(chars) >= 15 else None
+                if fit:
+                    cost = fit[1] + (0 if drop is None else 1)
+                    if fit[0] not in cands or cost < cands[fit[0]]:
+                        cands[fit[0]] = cost
+        if cands:
+            best = min(cands.values())
+            top = [t for t, c in cands.items() if c == best]
+            if len(top) == 1:
+                return top[0]
+    return None
+
+
 def parse(text):
     money = strip_times(text)              # amounts are read from a copy with clock times removed
     total, guessed = parse_total(money)
-    gstin = re.search(r"\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b", text.upper())
+    gstin = parse_gstin(text)
     inv = re.search(r"(?:invoice|inv|bill|receipt)\s*(?:no|number|#)\.?\s*[:\-]?\s*([A-Z0-9][A-Z0-9/-]{2,})", text, re.I)
-    return dict(vendor=parse_vendor(text), gstin=gstin.group(0) if gstin else None,
+    return dict(vendor=parse_vendor(text), gstin=gstin,
                 invoice_no=inv.group(1) if inv else None, date=parse_date(text), items=parse_items(money),
                 subtotal=parse_amount_line(money, r"sub\s*-?\s*total|taxable\s*(value|amount)"),
                 tax=parse_tax(money), total=total, total_guessed=guessed)

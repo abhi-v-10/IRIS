@@ -15,13 +15,22 @@ dist/
 .coverage.*
 htmlcov/
 
+# ---- Secrets and local configuration: NEVER commit ----
+.env
+.env.*
+*.pem
+*.key
+secret_key
+
 # ---- Runtime data: NEVER commit (holds the SQLite DB, the Flask secret key
 #      and every uploaded bill image, i.e. real user data) ----
 instance/
 
-# Defence in depth, in case any of these ever appear outside instance/
-secret_key
+# SQLite databases and their journal / write-ahead-log side files
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
 
@@ -32,15 +41,14 @@ secret_key
 #   $env:IRIS_INSTANCE="<repo>\demo_seed"; python tools/seed_demo.py --reset
 #   then delete demo_seed/secret_key
 !demo_seed/iris.db
-demo_seed/secret_key
-.env
-.env.*
-*.pem
-*.key
 
 # ---- Generated test data (deterministic: regenerate with
 #      `python tools/gen_receipts.py data_synth`) ----
 data_synth/
+
+# ---- Browser-test output (tools/browser_check.py uses Playwright) ----
+test-results/
+playwright-report/
 
 # ---- College report (not part of the prototype) ----
 # The ~30-page PDF report and its whole ReportLab build system exist only for
@@ -56,12 +64,21 @@ AI_Invoice_Receipt_Intelligence_Mini_Project_Report.pdf
 iris_export*.csv
 iris_report*.pdf
 
-# ---- Editors / OS junk ----
+# ---- Logs, scratch and backup files ----
+*.log
+*.tmp
+*.bak
+*.orig
+tmp/
+scratch/
+
+# ---- Editors, assistants and OS junk ----
 .vscode/
 .idea/
 *.code-workspace
 *.swp
 *~
+.claude/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
